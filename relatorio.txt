@@ -1,5 +1,7 @@
-/* Ricardo Bastos Leta Vieira 2110526 3WA */
-/* Rafael Paladini Meirelles 2111538 3WA */
+/*
+  Rafael Paladini Meirelles 2111538 3WA 
+  Ricardo Bastos Leta Vieira 2110526 3WA 
+*/
 
 A função mostra_comp funcionou adequadamente para todos os valores testados. Seguem alguns dos testes realizados:
 
@@ -47,8 +49,10 @@ A função mostra_comp funcionou adequadamente para todos os valores testados. S
       (uns) 255
       (int) 112                
 
+_____________________________________________________________________________
 
-A função grava_comp não funciona adequadamente para inteiros negativos
+Na primeira versão de grava_comp, a função possuia vários erros em diferentes situações, apesar de conseguir, em parte, gravar os bytes adequdos no arquivo.
+Com isso a  função teve que ser refeita por completo. Abaixo estão os casos testes e seus resultados para a primeira versão de grava_comp.
 
 1. Struct padrão fornecida (strings de vários tamanhos, unsigned int de vários tamanhos, int positivo e negativo)
    1. Input: nstructs = 2, descritor = "is05u", valores = {[-1, "abc", 258], [1, "ABCD", 65535]}
@@ -79,3 +83,74 @@ A função grava_comp não funciona adequadamente para inteiros negativos
    1. Input: nstructs = 1, descritor = "s03ui", valores = {[E, 255, 112]}
    2. Output Esperado: {0x01, 0x41, 0x45, 0x01, 0xff, 0xa1, 0x70}
    3. Output Real: {01 41 45 ff a1 70 } -- não faz cabeçalho para u
+
+_________________________________________________________________________
+
+Na segunda versão de grava_comp, a função passou quase todos os testes da anterior. A função não retira o padding de inteiros positivos, apenas de unsigned ints, ints negativas e strings.
+Abaixo estão os testes e seus resultados da segunda versão de grava_comp:
+
+1. Struct padrão fornecida (strings de vários tamanhos, unsigned int de vários tamanhos, int positivo e negativo)
+   1. Input: nstructs = 2, descritor = "is05u", valores = {[-1, "abc", 258], [1, "ABCD", 65535]}
+   2. Output Esperado: {0x02, 0x21, 0xff, 0x43, 0x61, 0x62, 0x63, 0x82, 0x01, 0x02, 0x21, 0x01, 0x44, 0x41, 0x42, 0x43, 0x44, 0x82, 0xff, 0xff}
+   3. Output Real: {02 21 ff 43 61 62 63 82  01 02 24 00 00 00 01 44 41 42 43 44 82 ff ff}  -- não retirou padding de 1
+  
+
+2. Strings de vários tamanhos
+   1. Input: nstructs = 2, descritor = "s10", valores = {["a"], ["abcdefghi"]}
+   2. Output Esperado: {0x02, 0xc1, 0x61, 0xc9, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69}
+   3. Output Real: {02 c1 61 c9 61 62 63 64  65 66 67 68 69} -- OK
+      
+3. Uma única struct
+   1. Input: nstructs = 1, descritor = "u", valores = {[26946]}
+   2. Output Esperado: {0x01, 0x82, 0x69, 0x42}
+   3. Output Real: {01 82 69 42} -- OK
+ 
+4. Ints de vários bytes
+   1. Input: nstructs = 2, descritor = "i", valores = {[-9], [-905]}
+   2. Output Esperado: {0x02, 0xa1, 0xf7, 0xa2, 0xFC, 0x77}
+   3. Output Real: {02 a1 f7 a1 77} -- guardou o cabeçalho errado para -905 e escreveu 1 byte a menos do que deveria 
+   
+5. Campos em outra ordem
+   1. Input: nstructs = 1, descritor = "uis03", valores = {[1, -1, p]}
+   2. Output Esperado: {0x01, 0x01, 0x01, 0x21, 0xff, 0xC1, 0x70}
+   3. Output Real: {01 01 01 21 ff c1 70} -- OK
+
+6. Ainda outra ordem para os campos
+   1. Input: nstructs = 1, descritor = "s03ui", valores = {[E, 255, 112]}
+   2. Output Esperado: {0x01, 0x41, 0x45, 0x01, 0xff, 0xa1, 0x70}
+   3. Output Real: {01 41 45 01 ff a4 00 00  00 70} -- Escreveu o cabeçalho da int errado e não tirou o padding da int
+
+_______________________________________________________________
+
+Na terceira versão de grava_comp, a função passou todos os testes da anterior. 
+Abaixo estão os testes e seus resultados da versão final de grava_comp:
+
+1. Struct padrão fornecida (strings de vários tamanhos, unsigned int de vários tamanhos, int positivo e negativo)
+   1. Input: nstructs = 2, descritor = "is05u", valores = {[-1, "abc", 258], [1, "ABCD", 65535]}
+   2. Output Esperado: {0x02, 0x21, 0xff, 0x43, 0x61, 0x62, 0x63, 0x82, 0x01, 0x02, 0x21, 0x01, 0x44, 0x41, 0x42, 0x43, 0x44, 0x82, 0xff, 0xff}
+   3. Output Real: {02 21 ff 43 61 62 63 82  01 02 21 01 44 41 42 43 44 82 ff ff }  -- OK
+  
+2. Strings de vários tamanhos
+   1. Input: nstructs = 2, descritor = "s10", valores = {["a"], ["abcdefghi"]}
+   2. Output Esperado: {0x02, 0xc1, 0x61, 0xc9, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69}
+   3. Output Real: {02 c1 61 c9 61 62 63 64  65 66 67 68 69} -- OK
+      
+3. Uma única struct
+   1. Input: nstructs = 1, descritor = "u", valores = {[26946]}
+   2. Output Esperado: {0x01, 0x82, 0x69, 0x42}
+   3. Output Real: {01 82 69 42} -- OK
+ 
+4. Ints de vários bytes
+   1. Input: nstructs = 2, descritor = "i", valores = {[-9], [-905]}
+   2. Output Esperado: {0x02, 0xa1, 0xf7, 0xa2, 0xFC, 0x77}
+   3. Output Real: {02 a1 f7 a2 fc 77} -- OK
+   
+5. Campos em outra ordem
+   1. Input: nstructs = 1, descritor = "uis03", valores = {[1, -1, p]}
+   2. Output Esperado: {0x01, 0x01, 0x01, 0x21, 0xff, 0xC1, 0x70}
+   3. Output Real: {01 01 01 21 ff c1 70} -- OK 
+
+6. Ainda outra ordem para os campos
+   1. Input: nstructs = 1, descritor = "s03ui", valores = {[E, 255, 112]}
+   2. Output Esperado: {0x01, 0x41, 0x45, 0x01, 0xff, 0xa1, 0x70}
+   3. Output Real: {01 41 45 01 ff a1 70} -- OK
