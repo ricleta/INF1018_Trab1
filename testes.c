@@ -1,20 +1,21 @@
- /* Ricardo Bastos Leta Vieira 2110526 3WA */
+/* Ricardo Bastos Leta Vieira 2110526 3WA */
 /* Rafael Paladini Meirelles 2111538 3WA */
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
-#include "gravacomp.h"
+#include "gravacomp.c"
 
 // Structs de teste
 struct s 
 {
   int i1; 
   // int i2;
-  char s1[3];
-  unsigned int u1;
-  char s2[10];
+  // char s1[5];
+  // char s1[3];
+  // unsigned int u1;
+  // char s2[10];
   // unsigned int u2;
 };
 
@@ -22,27 +23,27 @@ int main(void)
 {
   int size = 2;
   
-  struct s exemplo[2]; // struct usada para teste
+  struct s exemplo[size]; // struct usada para teste
   FILE *arq = fopen("dados.dat","wb"); // abre arquivo para escrita
   
-  exemplo[0].i1 = 2000; 
+  exemplo[0].i1 = -9; 
   // exemplo[0].i2 = 3; 
-  strcpy(exemplo[0].s1,"h\0");
-  exemplo[0].u1 = 2000;
+  // strcpy(exemplo[0].s1,"abc\0");
+  // exemplo[0].u1 = 26946;
   // exemplo[0].u2 = 12;
-  strcpy(exemplo[0].s2,"abacate\0");
-  // exemplo[0].u2 = 12;
+  // strcpy(exemplo[0].s2,"a\0");
+  // exemplo[0].u1 = 258;
   
 
-  exemplo[1].i1 = 69; 
+  // exemplo[1].i1 = -905; 
   // exemplo[1].i2 = 5; 
-  strcpy(exemplo[1].s1,"tt\0");
-  exemplo[1].u1 = 257;
+  // strcpy(exemplo[1].s1,"ABCD\0");
+  // exemplo[1].u1 = 65535;
   // exemplo[1].u2 = 258;
-  strcpy(exemplo[1].s2,"aba\0");
+  // strcpy(exemplo[1].s2,"abcdefghi");
   // exemplo[1].u2 = 258;
 
-  int res = gravacomp(size, exemplo, "is03us10", arq); // chamade de teste
+  int res = gravacomp(size, exemplo, "s03", arq); // chamade de teste
     
   // int res = gravacomp(size, exemplo, "iis03s10", arq); // chamade de teste
   
@@ -53,7 +54,7 @@ int main(void)
 
   // -----------------------------------------------
   // teste de mostracomp
-  FILE *arq2 = fopen("testes.dat","wb"); // abre arquivo para escrita
+  // FILE *arq2 = fopen("testes.dat","wb"); // abre arquivo para escrita 
 
   // struct s {
   //   int  i;
@@ -79,10 +80,10 @@ int main(void)
 
 //   FILE *arq4 = fopen("testes.dat", "rb");
   
-  FILE *arq4 = fopen("dados.dat", "rb");
+  // FILE *arq4 = fopen("dados.dat", "rb");
   
-  mostracomp(arq4);
+  // mostracomp(arq4);
 
-  fclose(arq4);
+  // fclose(arq4);
   return 0;
 }
