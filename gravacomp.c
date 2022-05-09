@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include "gravacomp.h"
 
 int gravacomp (int nstructs, void* valores, char* descritor, FILE* arquivo)
 {
