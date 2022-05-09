@@ -1,3 +1,6 @@
+/* Ricardo Bastos Leta Vieira 2110526 3WA */
+/* Rafael Paladini Meirelles 2111538 3WA */
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
