@@ -1,89 +1,104 @@
-/* Ricardo Bastos Leta Vieira 2110526 3WA */
-/* Rafael Paladini Meirelles 2111538 3WA */
-
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
-#include <math.h>
-#include "gravacomp.c"
+#include "gravacomp.h"
 
-// Structs de teste
-struct s 
+/*
+  Rafael Paladini Meirelles 2111538 3WA 
+  Ricardo Bastos Leta Vieira 2110526 3WA 
+*/
+
+struct s1 
 {
   int i1; 
-  // int i2;
-  // char s1[5];
-  // char s1[3];
-  // unsigned int u1;
-  // char s2[10];
-  // unsigned int u2;
+  char s1[5];
+  unsigned int u1;
+};
+
+struct s2 
+{
+  char s1[10];
+};
+
+struct s3
+{
+  unsigned int u1;
+};
+
+struct s4
+{
+  int i1; 
+};
+
+struct s5
+{
+  unsigned int u1;
+  int i1; 
+  char s1[3];
+};
+
+struct s6
+{
+  char s1[3];
+  unsigned int u1;
+  int i1; 
 };
 
 int main(void) 
 {
-  int size = 2;
-  
-  struct s exemplo[size]; // struct usada para teste
   FILE *arq = fopen("dados.dat","wb"); // abre arquivo para escrita
-  
-  exemplo[0].i1 = -9; 
-  // exemplo[0].i2 = 3; 
-  // strcpy(exemplo[0].s1,"abc\0");
-  // exemplo[0].u1 = 26946;
-  // exemplo[0].u2 = 12;
-  // strcpy(exemplo[0].s2,"a\0");
-  // exemplo[0].u1 = 258;
-  
 
-  // exemplo[1].i1 = -905; 
-  // exemplo[1].i2 = 5; 
+  // Teste 1
+  // int size = 2;
+  // struct s1 exemplo[size]; // struct usada para teste
+  // exemplo[0].i1 = -1;
+  // strcpy(exemplo[0].s1,"abc\0");
+  // exemplo[0].u1 = 258;
+  // exemplo[1].i1 = 1; 
   // strcpy(exemplo[1].s1,"ABCD\0");
   // exemplo[1].u1 = 65535;
-  // exemplo[1].u2 = 258;
-  // strcpy(exemplo[1].s2,"abcdefghi");
-  // exemplo[1].u2 = 258;
+  // int res = gravacomp(size, exemplo, "is05u", arq);
 
-  int res = gravacomp(size, exemplo, "s03", arq); // chamade de teste
+  // Teste 2
+  // int size = 2;
+  // struct s2 exemplo[size]; // struct usada para teste
+  // strcpy(exemplo[0].s1,"a\0");
+  // strcpy(exemplo[1].s1,"abcdefghi\0");
+  // int res2 = gravacomp(size, exemplo, "s10", arq);
+
+  // Teste 3
+  // int size = 1;
+  // struct s3 exemplo[size]; // struct usada para teste
+  // exemplo[0].u1 = 26946;
+  // int res3 = gravacomp(size, exemplo, "u", arq);
+
+  // Teste 4
+  // int size = 2;
+  // struct s4 exemplo[size]; // struct usada para teste
+  // exemplo[0].i1 = -9;
+  // exemplo[1].i1 = -905; 
+  // int res4 = gravacomp(size, exemplo, "i", arq);
+
+  // Teste 5
+  // int size = 1;
+  // struct s5 exemplo[size]; // struct usada para teste
+  // exemplo[0].u1 = 1;
+  // exemplo[0].i1 = -1;
+  // strcpy(exemplo[0].s1,"p\0");
+  // int res5 = gravacomp(size, exemplo, "uis03", arq);
+
+  // Teste 6
+  // int size = 1;
+  // struct s6 exemplo[size]; // struct usada para teste
+  // strcpy(exemplo[0].s1,"E\0");
+  // exemplo[0].u1 = 255;
+  // exemplo[0].i1 = 112;
+  // int res6 = gravacomp(size, exemplo, "s03ui", arq);
     
-  // int res = gravacomp(size, exemplo, "iis03s10", arq); // chamade de teste
+  fclose(arq);
   
-  // int res = gravacomp(size, exemplo, "iis03us10", arq); // chamade de teste
-
-  fclose(arq); // fecha arq de escrita
+  FILE *arq2 = fopen("dados.dat","rb"); // abre arquivo para leitura
   
-
-  // -----------------------------------------------
-  // teste de mostracomp
-  // FILE *arq2 = fopen("testes.dat","wb"); // abre arquivo para escrita 
-
-  // struct s {
-  //   int  i;
-  //   char s1[5];
-  //   unsigned int u;
-  // };
-  
-  // e um array com duas estruturas desse tipo. Se os campos da primeira estrutura contiverem, nesta ordem, os valores -1, "abc" e 258 e os da segunda os valores 1, "ABCD" e 65535, o conteúdo armazenado para esse array será (com os valores dos bytes exibidos em hexadecimal):
-  
-//   unsigned char testes[] = {0x01, 0x41, 0x45, 0x01, 0xff, 0xa1, 0x70};
-
-  
-//   fwrite(testes, 20, 1, arq2);
-
-//   fclose(arq2);
-
-//   FILE *arq3 = fopen("testes.dat","rb"); // abre arquivo para leitura
-  
-  // mostracomp(arq3);
-  // fim teste de mostracomp
-  
-  // fclose(arq2);
-
-//   FILE *arq4 = fopen("testes.dat", "rb");
-  
-  // FILE *arq4 = fopen("dados.dat", "rb");
-  
-  // mostracomp(arq4);
-
-  // fclose(arq4);
+  mostracomp(arq2);
+  fclose(arq2);
   return 0;
 }
