@@ -1,26 +1,20 @@
-/* Ricardo Bastos Leta Vieira 2110526 3WA */
-/* Rafael Paladini Meirelles 2111538 3WA */
+/*
+  Rafael Paladini Meirelles 2111538 3WA 
+  Ricardo Bastos Leta Vieira 2110526 3WA 
+*/
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 #include <math.h>
 #include "gravacomp.h"
 
-// converte um número em base 10 para um em base 2 (binário) usando recursão (método de divisões sucessivas)
-int decimal_binary(int n)
-{
-    // se n for 0, não é necessário dividir mais o número, então o resto é zero
-    if (n == 0)
-    {
-      return 0;
-    }
-    else
-    {
-      // acha o resto da divisão de n por 2 e soma ao resto da divisão de n/2 por 2 * 10
-      return ((n % 2) + 10 * decimal_binary(n/2)); 
-    }
-}
+// Protótipos
+
+void complemento_a_dois(unsigned char * arr, int tamanho);
+void interpreta_cabecalho(int * e_ultimo, char ** tipo, int * tamanho, unsigned char cabecalho);
+unsigned char * gera_array(FILE * arq, int tamanho);
+void grava_cabecalho(int tamanho, FILE* arquivo, int e_ultimo, char tipo);
+int tam_min_inteiro(unsigned char * arr, char tipo);
 
 // Calcula complemento a dois de um vetor de bytes
 void complemento_a_dois(unsigned char * arr, int tamanho){
@@ -38,226 +32,9 @@ void complemento_a_dois(unsigned char * arr, int tamanho){
     if(arr[i] != 0){
       break;
     }
-  }  
-}
-
-void escreve_string(void *p, int n, FILE *arq) 
-{
-  // cursor para percorrer a string, caractere por caractere
-  unsigned char *p1 = p;
-
-  // loop para percorrer a string até o tamanho ser 0
-  // a cada iteração, n diminui 1 unidade
-  while(n--) 
-  {
-    // se o caractere for NULL, ir para a próxima iteração do loop
-    if (*p1 == 0x00)
-    {
-      continue;
-    }
-
-    // se não for NULL, escreve o caractere no arquivo
-    fwrite(p1, 1, 1, arq);
-    
-    // printf("%p - %02x\n", p1, *p1);
-
-    // move o cursor para o próximo caractere
-    p1++;
-  }
-}
-
-// função que calcula o menor número de bytes necessário para armazenar um inteiro positivo ou um unsigned int (que sempre é positivo)
-int tam_int_pos(void *p) 
-{
-  unsigned char *p1 = p;
-  int tam = 4; // armazena o número de bytes necessário para armazenar o número
-
-  // checa se todos os bytes são iguais e se são iguais a 0xff
-  // se forem, a int pode ser armazenada em um único byte
-  if ((*p1 | *(p1+1) | *(p1+2) | *(p1+3)) == 0xff)
-  {
-    return 1;
-  }
-
-  // checa se todos os bytes são iguais e se são iguais a 0
-  // se forem, a int pode ser armazenada em um único byte
-  if ((*p1 | *(p1+1) | *(p1+2) | *(p1+3)) == 0)
-  {
-    return 1;
-  }
-
-  // loop para percorrer cada byte do número
-  for (int i = 0; i < 4; i++) 
-  { 
-    // se o byte não for 0, o loop é interrompido, pois os bytes importam para determinar o valor do número
-    if (*p1 != 0x00)
-    {
-      break;
-    }
-    else
-    {
-      // se o byte for zero e aparecer antes de um byte diferente de zero
-      // ele não importa para o valor do número e pode ser ignorado
-      
-      tam--; // tamanho - 1;
-      p1++; // avança o ponteiro para o próximo byte
-    }
-  }
-
-  // retorna o número de bytes significativos do número
-  return tam;
-}
-
-void str_escreve_cabecalho(void *p, FILE *arq, int size)
-{
-  unsigned char *p1 = p; // cursor para percorrer a string do descritor
-  unsigned char c = 0; // variável para armazenar o byte de cabeçalho 
-
-  // seta os bytes mais a direita como o comprimento da string a ser armazenda
-  c |= size << c;
-
-  // seta o sexto bit para 1, por ser uma string
-  c |= 1 << 6;
-
-  // se depois do descritor de string (sXX), não houver caractere, ela é o último campo da struct
-  if (*(p1 + 3) == '\0')
-  {
-    c |= 1 << 7; // seta o sétimo bit para 1 
-  }
-
-  fwrite(&c, 1, 1, arq); // escreve o cabeçalho no arquivo
-}
-
-// separa os bytes de uma unsigned int em um array
-unsigned char * quebra_uint(unsigned int inteiro)
-{
-  unsigned char *arr = (unsigned char *)malloc(4);
-
-  arr[0] = inteiro / 0x01000000;
-  arr[1] = ((inteiro) / 0x00010000) % 0x100;
-  arr[2] = ((inteiro) / 0x00000100) % 0x100;
-  arr[3] = 0x000000ff & inteiro;
-  
-  return arr;
-}
-
-unsigned char * quebra_int(int inteiro, int * e_negativo)
-{
-  // se o inteiro for negativo, seta e_negativo para 1
-  // caso contrário, seta para 0
-  if((inteiro & 0x80000000) != 0)
-  {
-    *e_negativo = 1;
-  }
-  else
-  {
-    *e_negativo = 0;
-  }
-
-  // transforma a int em um arrray de bytes
-  unsigned char * arr = quebra_uint((unsigned int) inteiro);
-  
-  return arr; // retorna o array
-}
-
-void int_escreve_cabecalho(char* p, FILE *arq, int num)
-{
-  // o (num & 0x80000000) verifica se o bit mais a esquerda da int é 1, se for, (num & 0x80000000) == 1 e o número é negativo, caso contrário é positivo
-  if((num & 0x80000000) == 0)
-  {
-    unsigned char c = 0; // variável para armazenar o byte de cabeçalho 
-    int size = 0; // variável para armazenar o tamanho do inteiro
-    
-    // variável para indicar se o número é negativo ou positivo
-    // se negativo, é igual 1, caso contrário é igual a 0 
-    int e_negativo; 
-    
-    unsigned char * quebrado; // vetor para armazenar os bytes da int separadamente
-
-    // se depois do descritor de int (i), não houver caractere, ela é o último campo da struct
-    if (*(p + 1) == '\0')
-    {
-      c |= 1 << 7; // seta o sétimo bit para 1
-    }
-  
-    c |= 0b00100000; // seta o quinto bit para 1, indicando que é uma int
-    
-    quebrado = quebra_uint(num); // separa os bytes da int em uma array de unsigned chars
-    size = tam_int_pos(quebrado); // determina o tamanho da int
-
-    decimal_binary(size); // converte o tamanho de decimal para binário
-    
-    c |= size << c; // seta os bytes mais a direita como o tamanho da int a ser armazenda
-    
-    fwrite(&c, 1, 1, arq); // escreve o cabeçalho no arquivo
-  }
-  else
-  {
-    printf("Nao funciona com numeros negativos\n");
-  }
-}
-
-void uint_escreve_cabecalho(char* p, FILE *arq, unsigned int num)
-{
-  unsigned char c = 0; // variável para armazenar o byte de cabeçalho 
-  int size = 0; // variável para armazenar o tamanho do inteiro
-    
-  // variável para indicar se o número é negativo ou positivo
-  // se negativo, é igual 1, caso contrário é igual a 0 
-  int e_negativo; 
-    
-  unsigned char * quebrado; // vetor para armazenar os bytes da int separadamente
-
-  // se depois do descritor de int (i), não houver caractere, ela é o último campo da struct
-  if (*(p+1) == '\0')
-  {
-    c |= 1 << 7; // seta o sétimo bit para 1
   }
   
-  quebrado = quebra_uint(num); // separa os bytes da unsigned int em uma array de unsigned chars
-  size = tam_int_pos(quebrado); // determina o tamanho da unsigned int, que é sempre um inteiro positivo
-
-  decimal_binary(size); // converte o tamanho de decimal para binário
-  
-  c |= size << c; // seta os bytes mais a direita como o tamanho da int a ser armazenda
-
-  // OBS: Como o quinto e sexto bits de c devem ser 0 para indicar que é uma unsigned int, não é necessário setá-los
 }
-
-void escreve_uint(FILE *arq, unsigned int u)
-{
-  // cria um array de chars para armazenar os bytes de u
-  unsigned char * arr = quebra_uint(u);
-  int tamanho = tam_int_pos(arr); // armazena o número de bytes necessário de u
-  arr += (4 - tamanho); // seta o array para começar a partir do primeiro byte necessário para determinar o valor de u 
-  fwrite(arr, 1, tamanho, arq); // escreve o array de bytes no arquivo
-}
-
-void escreve_int(FILE *arq, int d)
-{
-  int e_negativo; // variável que indica se um número é negativo ou não
-  unsigned char * arr = quebra_int(d, &e_negativo); // separa a int em um array de unsigned chars
-  int tamanho = 0; // inicia o tamanho da int como 0
-
-  // se o número for negativo, multipla ele por menos -1 para torná-lo positivo
-  if(e_negativo)
-  {
-    d *= -1;
-  }
-  else
-  {
-    // caso contrário, só calcula o seu tamanho
-    tamanho = tam_int_pos(&d);
-  }
-
-  arr += (4 - tamanho); // seta o array para começar a partir do primeiro byte necessário para determinar o valor de d
-  
-  complemento_a_dois(arr, tamanho); // Calcula complemento a dois do número
-  
-  fwrite(arr, 1, tamanho, arq); // escreve o número
-}
-
-
 // Analisa o byte de cabeçalho e transfere as informações úteis
 void interpreta_cabecalho(int * e_ultimo, char ** tipo, int * tamanho, unsigned char cabecalho){
   // Criamos as váriáveis para posterior comparação bitwise
@@ -289,30 +66,34 @@ void interpreta_cabecalho(int * e_ultimo, char ** tipo, int * tamanho, unsigned 
   *tamanho = bytes_tamanho & cabecalho;
   
 }
-
 // Lê bytes de um arquivo e transfere para um vetor de bytes
 unsigned char * gera_array(FILE * arq, int tamanho){
   unsigned char * arr = (unsigned char *)malloc(tamanho);
   fread(arr, 1, tamanho, arq);
   return arr;
 }
-
 // Descompacta struct e mostra conteúdo
 void mostracomp(FILE *arquivo){
+  
   unsigned char num_structs;
+  
   // Lemos o número de structs
   fread(&num_structs, sizeof(unsigned char), 1, arquivo);
   printf("Estruturas: %u\n", num_structs);
+  
   // Iteramos uma vez para cada struct
   for(unsigned char i = 0; i < num_structs; i++){
     while(1){
+      
       // Informações relativas a cada campo da struct
       unsigned char cabecalho;
       int e_ultimo;
       char * tipo;
       int tamanho;
+      
       // Array de bytes que guardará o conteúdo em si do campo
       unsigned char * arr;
+      
       // Lemos o byte de cabeçalho e guardamos as informações úteis
       fread(&cabecalho, 1, 1, arquivo);
       interpreta_cabecalho(&e_ultimo, &tipo, &tamanho, cabecalho);
@@ -329,6 +110,7 @@ void mostracomp(FILE *arquivo){
         }
         printf("\n");
       }
+      
       // Se é um unsigned int, calculamos o valor de cada byte com base em sua posição relativa e exibimos o resultado
       else if(tipo[1] == 'u'){
         unsigned int u = 0;
@@ -337,22 +119,24 @@ void mostracomp(FILE *arquivo){
         }
         printf("%u\n", u);
       }
-      
       else if(tipo[1] == 'i')
       {
         int d = 0;
+        
         // Se é um int, buscamos primeiro determinar se é um inteiro negativo ou não
         if((arr[0] & (unsigned char)128) != 0){
           // Se sim, utilizamos complemento a dois para obter o valor positivo, e printamos um "-"
         complemento_a_dois(arr, tamanho);
           printf("-");
           }
+        
         // Agora que eliminamos o caso dos negativos, basta printar como unsigned int
         for(int j = 0; j < tamanho; j++){
             d += pow(256, (tamanho - j - 1)) * arr[j];
         }
         printf("%d\n", d);
       }
+      
       // Se era o último campo, quebramos o loop
       if(e_ultimo){
         break;
@@ -363,120 +147,208 @@ void mostracomp(FILE *arquivo){
   }
 }
 
+// Compacta struct num arquivo
 int gravacomp (int nstructs, void* valores, char* descritor, FILE* arquivo)
 {
-  int i = 0; // função que controla o loop para percorrer todas as strucs
-  char *aux = descritor; // ponteiro que permite percorrer a string descritora sem alterar seu ponteiro
-  int *tmp; // cursor para percorrer o vetor de valores (structs)
+  // Guardaremos quantos bytes já foram percorridos
+  int percorrido = 0;
   
-  valores = (char *) valores; // cast de void* para char*, o que permiter percorrer o vetor
- 
-  int n = 0; // variável auxiliar para usar na aritmética de ponteiros e percorrer o vetor valores
+  // grava byte de nstructs
+  unsigned char n = nstructs;
+  fwrite(&n, 1, 1, arquivo);
   
-  int size = 0; // variável para armazenar o tamanho de cada string na struct (se houver);
+  // Damos cast em 'valores', para podermos ler as structs byte a byte
+  valores = (unsigned char *)valores;
   
-  // fwrite nao permite casting dentro do argumento, entao usei uma variavel para dar um cast de int para unsigned char
-  unsigned char uchar_nstructs = (unsigned char) nstructs;
-
-  // escreve byte com número de structs no arquivo
-  fwrite(&uchar_nstructs, 1, 1, arquivo);
-
-  // loop para percorrer o vetor de structs
-  for (i = 0; i < nstructs; i++)
+  // Iteramos uma vez para cada struct
+  for(int i=0; i<nstructs; i++)
   {
-    // loop para percorrer os elementos de cada struct
-    for (aux = descritor; aux != NULL; aux++)
+    // Criamos um ponteiro auxiliar para percorrer o descritor sem estragá-lo
+    char * descritor_auxiliar = descritor;
+    
+    // Iteramos cada campo, até o último da struct
+    while(1)
     {
-      // O continue em cada if pula para a próxima iteração do loop sem passar pelos if abaixo, para melhorar a perfomance um pouco
-      // O break no último if serve para impedir que ocorra segfault 
+      // Váriáveis para guardar informações importantes para o cabeçalho
+      char tipo_do_campo;
+      int e_ultimo = 0;
 
-      // printf("n = %d\n", n);
-
-      // quando o descritor for i, o valor é uma signed int
-      if (*aux == 'i')
+      // Guardamos o tipo e avançamos na string descritora
+      tipo_do_campo = *descritor_auxiliar;
+      descritor_auxiliar++;
+     
+      // Se o campo é uma string
+      if(tipo_do_campo == 's')
       {
-        // usa aritmética de ponteiros para mover o cursor n posições
-        // n é o número de bytes que já foram percorridos
-        tmp = valores + n;
+        // Guardaremos o tamanho declarado da string e o tamanho de fato ocupado
+        int tamanho_maximo_string;
+        int tamanho_real_string = 0;
+
+        // Lemos dois caracteres e ajustamos as posições relativas para registrar o tamanho
+        tamanho_maximo_string = 10 * (*descritor_auxiliar - '0');
+        descritor_auxiliar++;
+        tamanho_maximo_string += (*descritor_auxiliar - '0');
+        descritor_auxiliar++;
+
+        // Se chegamos ao fim do descritor, é o último campo
+        if (*descritor_auxiliar == '\0')
+        {
+          e_ultimo = 1;
+        }
+
+        // Copiamos o ponteiro para valores para descobrir o tamanho real da string sem estragar o original
+        unsigned char * copia_valores = valores;
+        while(*copia_valores)
+        {
+          copia_valores++;
+          tamanho_real_string++;
+        }
+        // Gravamos o cabeçalho
+        grava_cabecalho(tamanho_real_string, arquivo, e_ultimo, 's');
+
+        // Escrevemos os valores em si
+        fwrite(valores, 1, tamanho_real_string, arquivo);
         
-        // printf("--------------\n");        
+        // Incrementamos o ponteiro pelo tamanho declarado da string, para acessar o próximo campo
+        valores+=tamanho_maximo_string;
         
-        // printf("%d\n", *tmp);
-        
-        // printf("--------------\n");        
-
-        // escreve cabeçalho para ints, só funciona para números positivos
-        int_escreve_cabecalho(aux, arquivo, *tmp);
-
-        // escreve unsigned ints sem padding no arquivo
-        // funciona para signed ints positivas também
-        escreve_uint(arquivo, *tmp);
-
-        // incremento o cursor por 4 unidades, já que na struct cada int ocupa 4 bytes
-        n = n + 4;
-
-        // força a próxima iteração do loop
-        continue; 
+        // Aumentamos o número de bytes percorrido de acordo
+        percorrido += tamanho_maximo_string;
       }
-
-      // quando o descritor for u, o valor é uma unsigned int
-      if (*aux == 'u')
-      { 
-        tmp = valores + n;
+     else
+      {
+        // Se o descritor chegou ao fim, é o último campo
+        if (*descritor_auxiliar == '\0')
+        {
+          e_ultimo = 1;
+        }
+        
+        // Caso o padding não esteja correto, incrementamos o ponteiro de acordo
+        if(percorrido % 4 != 0)
+        {
+          valores += (4 - (percorrido % 4));
+          percorrido += (4 - (percorrido % 4));
+        }
+        
+       // Copiamos o ponteiro de valores para iterá-lo sem estragá-lo
+       unsigned char * copia_valores = valores;
        
-        // printf("--------------\n");
+      // Variável para guardar os 4 bytes de um inteiro num vetor, separados byte a byte
+       unsigned char * quebrado = (unsigned char *)malloc(4);
 
-        // printf("u = %u\n", *tmp);
+       // Colocamos os valores corretos nesse array
+       quebrado[3] = *copia_valores;
+       copia_valores++;
        
-        // printf("--------------\n");        
+       quebrado[2] = *copia_valores;
+       copia_valores++;
+       
+       quebrado[1] = *copia_valores;
+       copia_valores++;
 
-        // escreve cabeçalho para unsigned ints
-        uint_escreve_cabecalho(aux, arquivo, *tmp);
+       quebrado[0] = *copia_valores;
+       copia_valores++;
 
-        // escreve unsigned ints sem padding no arquivo
-        escreve_uint(arquivo, *tmp);
+       // Calculamos quais os bytes carregam informação útil
+       int tam_min = tam_min_inteiro(quebrado, tipo_do_campo);
+       
+       // Gravamos o cabeçalho
+       grava_cabecalho(tam_min, arquivo, e_ultimo, tipo_do_campo);
+       
+       // Pulamos os bytes que não carregam informação útil
+       quebrado += (4 - tam_min);
+       
+       // Escrevemos os valores em si
+       fwrite(quebrado, 1, tam_min, arquivo);
+       
+       // Incrementamos o ponteiro no tamanho de um inteiro
+       valores += 4;
+       percorrido += 4;
+     }
+      
+     // Se era o último campo, quebramos o loop
+     if(e_ultimo)
+     {
+       break;
+     }
+   }
+  }
+  return 0;
+}
+// Determina tamanho mínimo para representar um inteiro
+int tam_min_inteiro(unsigned char * arr, char tipo)
+{
+  int tam_min = 0;
+  int counter = 0;
 
-        // printf("--------------\n");        
+  // checa se todos os bytes são iguais e se são iguais a 0
+  // se forem, a int pode ser armazenada em um único byte
+  if ((*arr | *(arr+1) | *(arr+2) | *(arr+3)) == 0)
+  {
+    return 1;
+  }
+  
+  // Pulamos os bytes que não carregam informações úteis para aquele tipo
+  // 00, no de caso de unsigned ints e ints positivas, e 0xff, no caso de ints negativas
+  if(tipo == 'i' && ((*arr & 0b10000000) != 0))
+  {
+    // checa se todos os bytes são iguais e se são iguais a 0xff
+    // se forem, a int pode ser armazenada em um único byte
+    if ((*arr & *(arr+1) & *(arr+2) & *(arr+3)) == 0xff)
+    {
+      return 1;
+    }
+  
+    while(*arr == 0xff)
+    {
+      arr++;
+      counter++;
+    }
 
-        // incremento o cursor por 4 unidades, já que na struct cada unsigned int ocupa 4 bytes
-        n = n + 4;
-        
-        continue;
-      }
-
-      // quando o descritor for s, o valor é uma string
-      if (*aux == 's')
-      {
-        tmp = valores + n;
-        // pega os dois últimos caracteres do descrior de string e converte para int, assim encontrando o tamnho máximo da string
-        size = atoi(aux+1); 
-        
-        // printf("Tamanho string = %d\n", size);
-
-        // escreve cabeçalho para strings, o tamnho passado usa strlen pois é o número de caracteres realmente presentes na string
-        str_escreve_cabecalho(aux, arquivo, strlen(valores + n));
-
-        // printf("--------------\n");        
-        
-        // escreve string sem padding (caracteres == NULL) no arquivo
-        escreve_string(tmp, size, arquivo);
-
-        // printf("\n");
-        // printf("--------------\n");        
-
-        // calcula padding que deve ser adicionado para ir para o próximo valor 
-        n = n + (4 - (size % 4)) + size;
-        
-        continue;
-      }
-
-      // se o descritor for \0, ele chegou ao final, então o for é encerrado e a próxima struct é percorrida
-      if (*aux == '\0')
-      {
-        break;
-      }
+  }
+  else
+  {
+    while(*arr == 0x00)
+    {
+      arr++;
+      counter++;
     }
   }
   
-  return 0;
+  // Contamos os que sobraram
+  while(counter < 4)
+  {
+    counter++;
+    tam_min++;
+  }
+  return tam_min;
 }
+
+// Grava o byte de cabeçalho
+void grava_cabecalho(int tamanho, FILE* arquivo, int e_ultimo, char tipo)
+{
+  unsigned char cabecalho = 0b00000000;
+  
+  // Se é o último campo, o primeiro bit é um
+  if(e_ultimo)
+  {
+    cabecalho |= (unsigned char)0b10000000;
+  }
+  
+  // Configuramos os bits de tipo
+  if(tipo == 'i')
+  {
+    cabecalho |= (unsigned char)0b00100000;
+  }
+  else if(tipo == 's')
+  {
+    cabecalho |= (unsigned char)0b01000000;
+  }
+  
+  // Configuramos os bits de tamanho
+  cabecalho |= (unsigned char)tamanho;
+ 
+  // Escrevemos o cabeçalho
+  fwrite(&cabecalho, 1, 1, arquivo);
+}
+
